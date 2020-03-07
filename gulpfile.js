@@ -5,57 +5,55 @@ const sass = require("gulp-sass");
 const autoprefixer = require("gulp-autoprefixer");
 const cleanCSS = require("gulp-clean-css");
 const sourcemaps = require("gulp-sourcemaps");
+const rename = require("gulp-rename");
 const browserSync = require("browser-sync").create();
 
 sass.compiler = require("node-sass");
 
-gulp.task("css-build", () => {
+const CSSDestFolder = "./css";
+const SASSFilesPath = ["./sass/**/*.scss", "./sass/**/*.sass"];
+
+const sassBuild = () => {
     return gulp
-        .src("./css/*.css")
+        .src(SASSFilesPath)
+        .pipe(sass().on("error", sass.logError))
+        .pipe(gulp.dest(CSSDestFolder));
+};
+
+const cssBuild = () => {
+    return sassBuild()
+        .pipe(gulp.src([CSSDestFolder + "/**/*.css", "!" + CSSDestFolder + "/**/*.min.css"]))
+        .pipe(sourcemaps.init())
         .pipe(cleanCSS({ compatibility: "ie8" }))
         .pipe(autoprefixer("last 2 version", "safari 5", "ie 8", "ie 9"))
-        .pipe(gulp.dest("./css"));
-});
-
-gulp.task("sass-build", () => {
-    return gulp
-        .src("./sass/**/*.scss")
-        .pipe(sourcemaps.init())
         .pipe(
-            sass({
-                includePaths: require("node-normalize-scss").includePaths
-            }).on("error", sass.logError)
+            rename(path => {
+                path.basename += ".min";
+            })
         )
-        .pipe(sourcemaps.write("./maps"))
-        .pipe(gulp.dest("./css"));
-});
-
-gulp.task("build", gulp.series("sass-build", "css-build"));
-
-gulp.task("sass-dev", () => {
-    return gulp
-        .src("./sass/**/*.scss")
         .pipe(
-            sass({
-                includePaths: require("node-normalize-scss").includePaths
-            }).on("error", sass.logError)
+            sourcemaps.write("./", {
+                mapFile: mapFilePath => {
+                    return mapFilePath.replace(".map");
+                }
+            })
         )
-        .pipe(gulp.dest("./css"))
-        .pipe(browserSync.stream());
-});
+        .pipe(gulp.dest(CSSDestFolder));
+};
 
-gulp.task("dev", () => {
+const liveReload = () => {
     browserSync.init({
         server: "./"
     });
 
-    gulp.watch("./sass/**/*.scss", gulp.series("sass-dev")).on(
-        "change",
-        browserSync.reload
-    );
+    gulp.watch(SASSFilesPath, sassBuild).on("change", browserSync.reload);
     gulp.watch("./*.html").on("change", browserSync.reload);
+};
+
+gulp.task("reload", liveReload);
+
+gulp.task("dev", () => {
+    gulp.watch(SASSFilesPath, sassBuild);
 });
 
-gulp.task("dev-build-only", () => {
-    gulp.watch("./sass/**/*.scss").on("change", gulp.series("sass-dev"));
-});
+gulp.task("build", cssBuild);

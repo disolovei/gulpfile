@@ -1,17 +1,17 @@
 # Tasks
 
-**Watching, build and live reloading .scss files**
+**Watching, build and live reloading .scss and .sass files**
 
 Need create a index.html file in root directory and include a css/main.css stylesheet file
 
 ```shell script
-gulp dev
+gulp reload
 ```
 
 **Watching and build .scss files without live reloading**
 
 ```shell script
-gulp dev-build-only
+gulp dev
 ```
 
 **CSS optimization, minify**

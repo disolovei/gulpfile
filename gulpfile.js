@@ -9,6 +9,7 @@ sass.compiler = require("node-sass");
 
 const CSSDestFolder = "./css";
 const SASSFilesPath = ["./sass/**/*.scss", "./sass/**/*.sass"];
+const JSFilesPath   = "./js";
 
 const sassBuild = () => {
     return gulp
@@ -39,6 +40,19 @@ const cssBuild = () => {
         .pipe(gulp.dest(CSSDestFolder));
 };
 
+const jsBuild = () => {
+    return gulp
+        .src([JSFilesPath + "/**/*.js", "!" + JSFilesPath + "/**/*.min.js"])
+        .pipe(sourcemaps.init())
+        .pipe(require("gulp-babel")({
+            presets: ['@babel/env']
+        }))
+        .pipe(require("gulp-uglify")())
+        .pipe(require("gulp-rename")(path => {path.basename += ".min";}))
+        .pipe(sourcemaps.write("./"))
+        .pipe(gulp.dest(JSFilesPath));
+};
+
 const liveReload = () => {
     browserSync.init({
         server: "./"
@@ -54,4 +68,6 @@ gulp.task("dev", () => {
     gulp.watch(SASSFilesPath, sassBuild);
 });
 
-gulp.task("build", cssBuild);
+gulp.task("jsBuild", jsBuild);
+
+gulp.task("build", gulp.parallel([cssBuild, ]));

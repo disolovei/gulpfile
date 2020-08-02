@@ -14,7 +14,12 @@ gulp reload
 gulp dev
 ```
 
-**CSS optimization, minify**
+**JavaScript optimization, minify**
+```shell script
+gulp buildJS
+```
+
+**CSS and JAvascript optimization, minify**
 ```shell script
 gulp build
 ```
